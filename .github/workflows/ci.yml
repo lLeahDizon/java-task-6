@@ -1,4 +1,4 @@
-name: JIRENGU_JAVA_CI
+name: JIRENGU_CI
 
 on:
   pull_request:
