@@ -8,6 +8,10 @@ on:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      
 
     steps:
       - name: Checkout code
@@ -34,6 +38,7 @@ jobs:
       - name: Comment PR with test result
         if: ${{ always() }}
         uses: actions/github-script@v5
+        
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
