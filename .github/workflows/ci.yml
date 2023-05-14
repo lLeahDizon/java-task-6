@@ -46,3 +46,32 @@ jobs:
         with:
           message: 'Some tests failed. 😞 Please check the [ci logs](${{ github.event.pull_request._links.html.href }}/checks) for more details.'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Auto Merge
+        uses: pascalgn/automerge-action@v0.14.3
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_METHOD: "squash"
+      - name: Revert merged commit
+        if: ${{ always() }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pull } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            if (pull.merged) {
+              await github.rest.repos.createCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                message: `Revert "auto merge: ${pull.title}"`,
+                tree: pull.base.sha,
+                parents: [pull.merge_commit_sha],
+              });
+              console.log("Reverted the merged commit");
+            } else {
+              console.log("No need to revert, the PR was not merged");
+            }
