@@ -33,7 +33,6 @@ jobs:
       - name: Build and test with Maven
         run: mvn -B clean verify --file pom.xml
 
-      - name: Comment PR with test result
       - name: Comment PR if tests pass
         if: ${{ success() }}
         uses: thollander/actions-comment-pull-request@v1
