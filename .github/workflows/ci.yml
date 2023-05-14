@@ -11,7 +11,7 @@ jobs:
         uses: thollander/actions-comment-pull-request@v1
         with:
           message: |
-              Thanks for your pr!
+              🎉 感谢您提交Pull Request！请稍等片刻，我们已经将其提交到CI进行检查，一旦有结果会立即通知您！
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
       - name: Checkout code
         uses: actions/checkout@v3
@@ -34,17 +34,16 @@ jobs:
         run: mvn -B clean verify --file pom.xml
 
       - name: Comment PR with test result
-        uses: mshick/add-pr-comment@v2
-        with:
-          message: |
-              **Your code passed the jugdement!**
-          message-failure: |
-            Uh oh!
-          proxy-url: https://add-pr-comment-proxy-94idvmwyie-uc.a.run.app 
-      - name: Set TEST_RESULT environment variable
-        run: echo "TEST_RESULT=Success" >> $GITHUB_ENV
+      - name: Comment PR if tests pass
         if: ${{ success() }}
+        uses: thollander/actions-comment-pull-request@v1
+        with:
+          message: 'All tests passed! 🎉 Congratulation!🎉🎉🎉 We will revert your commit '
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set TEST_RESULT environment variable
-        run: echo "TEST_RESULT=Failed" >> $GITHUB_ENV
+      - name: Comment PR if tests fail
         if: ${{ failure() }}
+        uses: thollander/actions-comment-pull-request@v1
+        with:
+          message: 'Some tests failed. 😞 Please check the [ci logs](${{ github.event.pull_request._links.html.href }}/checks) for more details.'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
