@@ -1,9 +1,6 @@
 name: JIRENGU_CI
 
-on:
-  pull_request:
-    branches:
-      - main
+on: pull_request_target
 jobs:
   homework-judgement:
     runs-on: ubuntu-latest
@@ -11,11 +8,11 @@ jobs:
       pull-requests: write
     steps:
       - name: Comment on PR
-        uses: mshick/add-pr-comment@v2
+        uses: thollander/actions-comment-pull-request@v1
         with:
           message: |
-              **Thanks for your pr!**
-          proxy-url: https://add-pr-comment-proxy-94idvmwyie-uc.a.run.app    
+              Thanks for your pr!
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
       - name: Checkout code
         uses: actions/checkout@v3
         with:
