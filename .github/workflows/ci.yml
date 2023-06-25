@@ -60,7 +60,7 @@ jobs:
           sha=$(echo "$response" | jq -r '.sha')
           echo "merge_commit_sha=$sha" >> $GITHUB_ENV
           
-      - name: Revert PR if merged
+      - name: Revert PR
         if: ${{ success() }}
         run: |
           git config --local user.name "github-actions[bot]"
@@ -70,6 +70,8 @@ jobs:
 
           # Revert the merge commit
           git revert -m 1 ${{ github.sha }}
-
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git push origin ${{ github.event.repository.default_branch }}
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0 
+        with:
+          github_token: ${{ secrets.MY_TOKEN }}
+          branch: ${{ github.ref }}     
