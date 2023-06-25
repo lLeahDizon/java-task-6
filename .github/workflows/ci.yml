@@ -1,6 +1,6 @@
 name: JIRENGU_CI
 
-on: pull_request_target
+on: pull_request
 jobs:
   homework-judgement:
     runs-on: ubuntu-latest
@@ -12,7 +12,7 @@ jobs:
         with:
           message: |
               🎉 感谢您提交Pull Request！请稍等片刻，我们已经将其提交到CI进行检查，一旦有结果会立即通知您！
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
           comment_tag: automerge
       - name: Checkout code
         uses: actions/checkout@v3
@@ -39,7 +39,7 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: 'All tests passed! 🎉 Congratulation!🎉🎉🎉 We will revert your commit '
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
           
 
       - name: Comment PR if tests fail
@@ -47,28 +47,17 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: 'Some tests failed. 😞 Please check the [ci logs](${{ github.event.pull_request._links.html.href }}/checks) for more details.'
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
       
       - name: Merge PR if tests pass
         if: ${{ success() }}
         run: |
           # Merge PR
-          curl -X PUT -H "Authorization: token ${{ secrets.MY_TOKEN }}" \
+          response=$(curl -X PUT \
+            -H "Authorization: token ${{ secrets.MY_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge
-          # Wait for GitHub to process the merge
-          sleep 15
-      - name: Revert PR if merged
-        if: ${{ success() }}
-        run: |
-          # Checkout the main branch
-          git checkout ${{ github.event.repository.default_branch }}
-    
-          # Revert the merge commit
-          git revert -m 1 ${{ github.sha }}
-    
-          # Push the revert commit with MY_TOKEN
-          git -c user.name="zhangge208" -c user.email="zhangge208@gmail.com" \
-              remote set-url --push origin https://x-access-token:${{ secrets.MY_TOKEN }}@github.com/${{ github.repository }}
-          git -c user.name="zhangge208" -c user.email="zhangge208@gmail.com" \
-              push origin ${{ github.event.repository.default_branch }}
+            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge)
+          # Get the SHA of the merge commit
+          sha=$(echo "$response" | jq -r '.sha')
+          echo "merge_commit_sha=$sha" >> $GITHUB_ENV
+          
