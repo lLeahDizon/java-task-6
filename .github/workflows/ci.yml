@@ -60,6 +60,9 @@ jobs:
       - name: Revert PR if merged
         if: ${{ success() }}
         run: |
+          # Set up git credentials with MY_TOKEN
+          git config --global user.email "zhangge208@gmail.com"
+          git config --global user.name "zhangge208"
           # Checkout the main branch
           git checkout ${{ github.event.repository.default_branch }}
     
