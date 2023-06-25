@@ -71,5 +71,6 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git revert --no-edit HEAD
+          git pull --rebase
+          git revert -m 1 ${{ env.merge_commit_sha }}
           git push
