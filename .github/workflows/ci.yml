@@ -49,14 +49,6 @@ jobs:
           message: 'Some tests failed. 😞 Please check the [ci logs](${{ github.event.pull_request._links.html.href }}/checks) for more details.'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Setup GitHub CLI
-        if: ${{ success() }}
-        run: |
-          gh extension install actions/gh-extension
-          gh config set prompt disabled
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Auto Merge
         if: ${{ success() }}
         uses: actions/github-script@v5
