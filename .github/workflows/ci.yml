@@ -55,11 +55,15 @@ jobs:
           gh extension install actions/gh-extension
           gh config set prompt disabled
           echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Auto Merge
         if: ${{ success() }}
         run: |
           PR_ID="${{ github.event.pull_request.number }}"
           gh pr merge "$PR_ID" --auto --squash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Revert merged commit
         if: ${{ success() }}
         uses: actions/github-script@v5
