@@ -61,9 +61,6 @@ jobs:
       - name: Revert PR if merged
         if: ${{ success() }}
         run: |
-          # Set up git credentials with MY_TOKEN
-          git config --global user.email "zhangge208@gmail.com"
-          git config --global user.name "zhangge208"
           # Checkout the main branch
           git checkout ${{ github.event.repository.default_branch }}
     
@@ -71,6 +68,7 @@ jobs:
           git revert -m 1 ${{ github.sha }}
     
           # Push the revert commit with MY_TOKEN
-          git remote set-url --push origin https://x-access-token:${{ secrets.MY_TOKEN }}@github.com/${{ github.repository }}
-          git push origin ${{ github.event.repository.default_branch }}  
-      
+          git -c user.name="zhangge208" -c user.email="zhangge208@gmail.com" \
+              remote set-url --push origin https://x-access-token:${{ secrets.MY_TOKEN }}@github.com/${{ github.repository }}
+          git -c user.name="zhangge208" -c user.email="zhangge208@gmail.com" \
+              push origin ${{ github.event.repository.default_branch }}
