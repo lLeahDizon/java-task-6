@@ -64,17 +64,13 @@ jobs:
           
       - name: Revert PR
         if: ${{ success() }}
+        uses: actions/checkout@v3
         run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name github-actions
+          git config user.email github-actions@github.com
           # Checkout the main branch
           git checkout ${{ github.event.repository.default_branch }}
 
           # Revert the merge commit
           git revert -m 1 ${{ github.sha }}
-      - name: Push changes
-        uses: ad-m/github-push-action@v0.6.0 
-        with:
-          github_token: ${{ secrets.MY_TOKEN }}
-          branch: main
-          force: true
+          git push
