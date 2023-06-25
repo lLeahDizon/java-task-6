@@ -59,11 +59,25 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Auto Merge
         if: ${{ success() }}
-        run: |
-          PR_ID="${{ github.event.pull_request.number }}"
-          gh pr merge "$PR_ID" --auto --squash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pull } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            if (!pull.merged) {
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+              });
+              console.log("Merged the PR");
+            } else {
+              console.log("The PR is already merged");
+            }
       - name: Revert merged commit
         if: ${{ success() }}
         uses: actions/github-script@v5
