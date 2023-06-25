@@ -1,6 +1,6 @@
 name: JIRENGU_CI
 
-on: pull_request_target
+on: pull_request
 jobs:
   homework-judgement:
     runs-on: ubuntu-latest
@@ -49,53 +49,4 @@ jobs:
           message: 'Some tests failed. 😞 Please check the [ci logs](${{ github.event.pull_request._links.html.href }}/checks) for more details.'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Auto Merge
-        if: ${{ success() }}
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { data: pull } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-            });
-            if (!pull.merged) {
-              await github.rest.pulls.merge({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.issue.number,
-              });
-              console.log("Merged the PR");
-            } else {
-              console.log("The PR is already merged");
-            }
-      - name: Revert merged commit
-        if: ${{ success() }}
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { data: pull } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-            });
-            if (pull.merged) {
-              const { data: ref } = await github.rest.git.createRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: `refs/heads/revert-${pull.number}`,
-                sha: pull.base.sha,
-              });
-              const { data: revertPull } = await github.rest.pulls.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: `Revert "auto merge: ${pull.title}"`,
-                head: ref.ref,
-                base: pull.base.ref,
-              });
-              console.log(`Created PR to revert the merge: ${revertPull.html_url}`);
-            } else {
-              console.log("No need to revert, the PR was not merged");
-            }
+      
