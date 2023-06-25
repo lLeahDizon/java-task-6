@@ -49,13 +49,19 @@ jobs:
           message: 'Some tests failed. 😞 Please check the [ci logs](${{ github.event.pull_request._links.html.href }}/checks) for more details.'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
+      - name: Setup GitHub CLI
+        if: ${{ success() }}
+        run: |
+          gh extension install actions/gh-extension
+          gh config set prompt disabled
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
       - name: Auto Merge
-        uses: pascalgn/automerge-action@v0.14.3
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          MERGE_METHOD: "squash"
+        if: ${{ success() }}
+        run: |
+          PR_ID="${{ github.event.pull_request.number }}"
+          gh pr merge "$PR_ID" --auto --squash
       - name: Revert merged commit
-        if: ${{ always() }}
+        if: ${{ success() }}
         uses: actions/github-script@v5
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -66,14 +72,20 @@ jobs:
               pull_number: context.issue.number,
             });
             if (pull.merged) {
-              await github.rest.repos.createCommit({
+              const { data: ref } = await github.rest.git.createRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                message: `Revert "auto merge: ${pull.title}"`,
-                tree: pull.base.sha,
-                parents: [pull.merge_commit_sha],
+                ref: `refs/heads/revert-${pull.number}`,
+                sha: pull.base.sha,
               });
-              console.log("Reverted the merged commit");
+              const { data: revertPull } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Revert "auto merge: ${pull.title}"`,
+                head: ref.ref,
+                base: pull.base.ref,
+              });
+              console.log(`Created PR to revert the merge: ${revertPull.html_url}`);
             } else {
               console.log("No need to revert, the PR was not merged");
             }
