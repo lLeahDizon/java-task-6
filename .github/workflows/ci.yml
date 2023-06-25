@@ -64,21 +64,15 @@ jobs:
         if: ${{ success() }}
         uses: actions/github-script@v4
         with:
-          github-token: ${{ secrets.MY_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { owner, repo } = context.repo;
-            const branch = context.payload.repository.default_branch;
-            const sha = context.sha;  // Ensure this SHA is what you want to revert
-            await github.repos.createCommit({
-              owner,
-              repo,
-              message: `Revert commit ${sha}`,
-              tree: '',  // You may need to get the tree SHA first
-              parents: [sha]
-            });
-            await github.git.updateRef({
-              owner,
-              repo,
-              ref: `heads/${branch}`,
-              sha: context.sha,  // The new commit's SHA
-            });
+            git config --local user.name "github-actions[bot]"
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            # Checkout the main branch
+            git checkout ${{ github.event.repository.default_branch }}
+
+            # Revert the merge commit
+            git revert -m 1 ${{ github.sha }}
+
+            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+            git push origin ${{ github.event.repository.default_branch }}
