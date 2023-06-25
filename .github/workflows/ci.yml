@@ -61,7 +61,6 @@ jobs:
           # Get the SHA of the merge commit
           sha=$(echo "$response" | jq -r '.sha')
           echo "merge_commit_sha=$sha" >> $GITHUB_ENV
-      - uses: actions/checkout@v3
       - name: Revert PR
         if: ${{ success() }}
         uses: 'tofu-apis/revert-commit-action@v0.0.37'
