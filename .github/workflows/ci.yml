@@ -12,8 +12,7 @@ jobs:
         with:
           message: |
               🎉 感谢您提交Pull Request！请稍等片刻，我们已经将其提交到CI进行检查，一旦有结果会立即通知您！
-          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
-          comment_tag: automerge
+          token: ${{ secrets.MY_TOKEN }}
       - name: Checkout code
         uses: actions/checkout@v3
         with:
