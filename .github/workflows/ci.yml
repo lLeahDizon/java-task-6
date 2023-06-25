@@ -49,11 +49,24 @@ jobs:
           message: 'Some tests failed. 😞 Please check the [ci logs](${{ github.event.pull_request._links.html.href }}/checks) for more details.'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Auto Merge if tests pass
+      - name: Merge and revert PR if tests pass
         if: ${{ success() }}
-        uses: pascalgn/automerge-action@v0.14.3
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          MERGE_METHOD: "squash"
+        run: |
+          # Merge PR
+          curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge
+
+          # Fetch the latest commit SHA on the main branch
+          latest_sha=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/commits/main | jq -r .sha)
+
+          # Revert the merge commit
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/git/reverts \
+            -d "{ \"commit\": \"${latest_sha}\", \"base\": \"main\" }"
+
           
       
