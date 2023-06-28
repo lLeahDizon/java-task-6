@@ -39,15 +39,14 @@ jobs:
         if: ${{ success() }}
         uses: thollander/actions-comment-pull-request@v2
         with:
-          message: 'All tests passed! 🎉 Congratulation!🎉🎉🎉 We will revert your commit '
+          message: ' 🎉 Congratulation!🎉🎉🎉 所有测试均已通过，我们会自动合并你的PR，之后会revert方便其他小伙伴继续练习。可以去试试别的挑战！'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
 
       - name: Comment PR if tests fail
         if: ${{ failure() }}
         uses: thollander/actions-comment-pull-request@v2
         with:
-          message: 'Some tests failed. 😞 Please check the [ci logs](${{ github.event.pull_request._links.html.href }}/checks) for more details.'
+          message: '你的代码好像没有通过测试. 😞 请仔细检查你的代码，详情可以在这里找到： [ci logs](${{ github.event.pull_request._links.html.href }}/checks) '
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Merge PR if tests pass
